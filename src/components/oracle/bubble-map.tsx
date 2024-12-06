@@ -3,6 +3,8 @@
 import React, { useEffect, useRef } from 'react'
 import * as d3 from 'd3'
 import DEFAULT_AVATAR from '@/assets/images/default-avatar-new.png'
+import { useRouter } from 'next/navigation'
+import { InvestorModel } from '@/models/investor.model'
 
 interface PropsModel {
   nodes?: {
@@ -10,6 +12,7 @@ interface PropsModel {
     group?: number
     size?: number
     img?: string
+    investor?: InvestorModel
   }[]
   links?: {
     source?: number
@@ -21,11 +24,10 @@ interface PropsModel {
 
 const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (nodes && links) {
-      console.log(nodes, links)
-
       const data = { nodes, links }
       const width = window.innerWidth
       const height = window.innerHeight
@@ -79,13 +81,15 @@ const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
         .append('g')
         .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
 
-      // Add circles for the outer bubble with padding
       node
         .append('circle')
         .attr('r', (d: any) => d.size / 2 + padding) // Add padding to the radius
         .attr('fill', '#1278FA1A')
         .attr('class', 'animated-node')
         .style('stroke', '#1278FA')
+        .on('click', (_event: any, d: any) => {
+          router.push(`/oracle/${d.id}`) // Log the data of the clicked node
+        })
 
       // Add circular clipping paths for the images
       node
@@ -95,6 +99,9 @@ const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
         .attr('r', (d: any) => d.size / 2) // Inner circle radius for the image
         .attr('cx', 0) // Center the clipping path
         .attr('cy', 0)
+        .on('click', (_event: any, d: any) => {
+          router.push(`/oracle/${d.id}`) // Log the data of the clicked node
+        })
 
       // Add images clipped to the circular shape
       const images = node
@@ -106,12 +113,63 @@ const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
         .attr('x', (d: any) => -d.size / 2) // Center the image
         .attr('y', (d: any) => -d.size / 2) // Center the image
         .attr('clip-path', (d: any) => `url(#clip-${d.id})`)
-        .attr('preserveAspectRatio', 'xMidYMid slice') // Apply the circular clip
+        .attr('preserveAspectRatio', 'xMidYMid slice')
+        .on('click', (_event: any, d: any) => {
+          router.push(`/oracle/${d.id}`) // Log the data of the clicked node
+        }) // Apply the circular clip
 
       images.on('error', function (event: any) {
         const element = event.currentTarget as SVGImageElement
         d3.select(element).attr('xlink:href', DEFAULT_AVATAR.src) // Replace with default avatar
       })
+
+      const tooltip = d3.select('#tooltip')
+
+      // Add hover events to circles
+      node
+        .selectAll('circle')
+        .on('mouseover', (event: { pageX: number; pageY: number }, d: { investor: InvestorModel }) => {
+          // Show the tooltip
+          tooltip.style('display', 'block').html(`
+                <strong></strong> ${d.investor?.name ?? ''} <br>
+               
+              `)
+
+          // Position the tooltip
+          tooltip
+            .style('left', `${event.pageX + 10}px`) // Offset slightly to the right of the cursor
+            .style('top', `${event.pageY + 10}px`)
+        })
+        .on('mousemove', (event: { pageX: number; pageY: number }) => {
+          // Update tooltip position as the mouse moves
+          tooltip.style('left', `${event.pageX + 10}px`).style('top', `${event.pageY + 10}px`)
+        })
+        .on('mouseout', () => {
+          // Hide the tooltip
+          tooltip.style('display', 'none')
+        })
+
+      node
+        .selectAll('image')
+        .on('mouseover', (event: { pageX: number; pageY: number }, d: { investor: InvestorModel }) => {
+          // Show the tooltip
+          tooltip.style('display', 'block').html(`
+              <strong></strong> ${d.investor?.name ?? ''} <br>
+              `)
+
+          // Position the tooltip
+          tooltip
+            .style('left', `${event.pageX + 10}px`) // Offset slightly to the right of the cursor
+            .style('top', `${event.pageY + 10}px`)
+        })
+        .on('mousemove', (event: { pageX: number; pageY: number }) => {
+          // Update tooltip position as the mouse moves
+          tooltip.style('left', `${event.pageX + 10}px`).style('top', `${event.pageY + 10}px`)
+        })
+        .on('mouseout', () => {
+          // Hide the tooltip
+          tooltip.style('display', 'none')
+        })
 
       simulation.on('tick', () => {
         link
@@ -188,6 +246,18 @@ const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
       </style>
       <div style={{ height: 'calc(100vh - 50px)' }}>
         <svg ref={svgRef}></svg>
+        <div
+          id="tooltip"
+          style={{
+            position: 'absolute',
+            padding: '8px',
+            background: 'rgba(0, 0, 0, 0.7)',
+            borderRadius: '4px',
+            display: 'none',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        ></div>
       </div>
     </>
   )
