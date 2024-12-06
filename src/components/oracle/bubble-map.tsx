@@ -50,6 +50,14 @@ const BubbleMap: React.FC<PropsModel> = ({ nodes, links }) => {
       // Apply zoom behavior to the SVG
       svg.call(zoom)
 
+      // Apply default zoom level (e.g., zoom out to 0.75x)
+      const defaultZoomScale = 0.5 // Zoom out to 80%
+      const defaultZoomTransform = d3.zoomIdentity
+        .translate((width / 2) * (1 - defaultZoomScale), (height / 2) * (1 - defaultZoomScale))
+        .scale(defaultZoomScale)
+
+      svg.call(zoom.transform, defaultZoomTransform)
+
       const simulation = d3
         .forceSimulation(data.nodes)
         .force(
