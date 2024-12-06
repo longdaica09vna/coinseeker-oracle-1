@@ -5,16 +5,25 @@ import { CoInvestorModel } from '@/models/co-investor.model'
 import { apiService } from '@/services/api-service'
 import React, { useEffect, useMemo, useState } from 'react'
 import DEFAULT_AVATAR from '@/assets/images/default-avatar-new.png'
+import { useParams } from 'next/navigation'
 
 // const BubbleMap = dynamic(() => import('@/components/oracle/bubble-map'), { ssr: false })
 export default function Oracle() {
   const [coInvestor, setCoInvestor] = useState(null as CoInvestorModel | null)
+  const params = useParams()
   const findBubbleMap = async () => {
     try {
+      const id = params.id as string
       const res = await apiService.coInvestor.find({
         populate: ['subInvestors.logo', 'mainInvestor.logo'],
         filters: {
-          id: 10,
+          mainInvestor: {
+            id: id,
+          },
+        },
+        pagination: {
+          page: 1,
+          pageSize: 1,
         },
       })
       setCoInvestor(res.data[0])
