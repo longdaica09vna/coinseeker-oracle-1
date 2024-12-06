@@ -14,7 +14,7 @@ export default function Oracle() {
       const res = await apiService.coInvestor.find({
         populate: ['subInvestors.logo', 'mainInvestor.logo'],
         filters: {
-          id: 4,
+          id: 3827,
         },
       })
       setCoInvestor(res.data[0])
