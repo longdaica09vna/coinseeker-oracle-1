@@ -24,6 +24,8 @@ export default function Oracle() {
   }
 
   useEffect(() => {
+    console.log(1234)
+
     findBubbleMap()
   }, [])
 
