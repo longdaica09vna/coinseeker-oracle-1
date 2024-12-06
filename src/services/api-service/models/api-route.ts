@@ -1,0 +1,10 @@
+export type ApiRoute =
+  | 'auth'
+  | 'blockchains'
+  | 'boardItems'
+  | 'profiles'
+  | 'projects'
+  | 'sectors'
+  | 'users'
+  | 'credit-transactions'
+  | 'co-investors'
